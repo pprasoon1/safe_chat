@@ -5,11 +5,25 @@ from auth.routes import router as auth_router
 from routes.rooms import router as rooms_router
 from fastapi.middleware.cors import CORSMiddleware
 
+from db import engine, Base   # 👈 IMPORTANT: import these
+
 app = FastAPI()
 
+# 🔥 AUTO-CREATE TABLES ON STARTUP (THIS FIXES YOUR ERROR)
+@app.on_event("startup")
+async def startup():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    print("✅ Database tables ensured")
+
+# 🌍 CORS (allow Render + Vercel later)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://safe-chat-frontend.vercel.app",   # change later to your real Vercel domain
+        "https://safe-chat-ovd9.onrender.com"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -20,8 +34,8 @@ app.include_router(auth_router, prefix="/auth")
 # REST room routes
 app.include_router(rooms_router, prefix="/rooms")
 
-# Mount websocket app
-app.mount("/", socketio.ASGIApp(sio))
+# Mount websocket app (VERY IMPORTANT: mount AFTER routers)
+app.mount("/socket.io", socketio.ASGIApp(sio))
 
 @app.get("/")
 async def root():
