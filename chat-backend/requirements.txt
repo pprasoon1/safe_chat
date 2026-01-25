@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+python-socketio[asgi]
+python-jose
+passlib[argon2]
+sqlalchemy
+asyncpg
+redis
+httpx
+pydantic
+greenlet

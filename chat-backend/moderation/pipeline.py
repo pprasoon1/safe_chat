@@ -7,8 +7,8 @@ ML_URL = "http://127.0.0.1:8001/predict"
 async def moderate_message(data):
     async with httpx.AsyncClient() as client:
         resp = await client.post(ML_URL, json={"text": data["message"]})
+    
     result = resp.json()
-
     toxicity = result["toxicity"]
     scores = result["scores"]
 
