@@ -8,7 +8,11 @@ DATABASE_URL = os.getenv(
 "DATABASE_URL",
 "postgresql+asyncpg://prasoon:prasoon@localhost:5432/chatdb")
 
-engine = create_async_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(
+    DATABASE_URL,
+    echo=True,
+    connect_args={"ssl": True}
+)
 
 SessionLocal = sessionmaker(
     engine,
