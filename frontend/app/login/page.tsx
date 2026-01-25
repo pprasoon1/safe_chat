@@ -11,8 +11,8 @@ export default function Login() {
 
     async function handleLogin(e: any) {
         e.preventDefault()
-
-        const res = await fetch("https://safe-chat-ovd9.onrender.com/auth/login", {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL;
+        const res = await fetch(`${API_URL}/auth/register`, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({email, password})

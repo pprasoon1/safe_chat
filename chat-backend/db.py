@@ -3,15 +3,22 @@ import os
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# use the same user you used with psql (prasoon)
 DATABASE_URL = os.getenv(
-"DATABASE_URL",
-"postgresql+asyncpg://prasoon:prasoon@localhost:5432/chatdb")
+    "DATABASE_URL",
+    "postgresql+asyncpg://prasoon:prasoon@localhost:5432/chatdb"
+)
+
+# 🔥 AUTO-DETECT WHETHER SSL IS NEEDED
+connect_args = {}
+
+# Neon / cloud postgres requires SSL
+if "neon.tech" in DATABASE_URL or "render.com" in DATABASE_URL:
+    connect_args = {"ssl": True}
 
 engine = create_async_engine(
     DATABASE_URL,
     echo=True,
-    connect_args={"ssl": True}
+    connect_args=connect_args
 )
 
 SessionLocal = sessionmaker(
@@ -26,7 +33,3 @@ Base = declarative_base()
 async def get_db():
     async with SessionLocal() as session:
         yield session
-
-
-
-# DATABASE_URL = "postgresql+asyncpg://postgres:password@localhost:5432/chatdb"
