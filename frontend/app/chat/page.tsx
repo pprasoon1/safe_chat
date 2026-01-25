@@ -5,7 +5,6 @@ import { createSocket } from "@/lib/socket";
 import ToxicityMeter from "@/components/ToxicityMeter";
 import MessageBubble from "@/components/MessageBubble";
 import TypingIndicator from "@/components/TypingIndicator";
-import { getToken } from "@/lib/auth";
 
 export default function Chat() {
   const [socket, setSocket] = useState<any>(null);
@@ -17,42 +16,34 @@ export default function Chat() {
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
-  const [currentRoom, setCurrentRoom] = useState("global");   // default room
-  const [chatId, setChatId] = useState(1);                    // later dynamic
-  const [userId, setUserId] = useState(1);                    // later from backend
+  const [currentRoom, setCurrentRoom] = useState("global");
   const [privateTarget, setPrivateTarget] = useState("");
 
   // -------------------------------------------------
-  // 🔐 CONNECT SOCKET & REGISTER EVENTS
+  // 🔐 CONNECT SOCKET
   // -------------------------------------------------
   useEffect(() => {
     const s = createSocket();
     setSocket(s);
 
-    // When connected → auto join global room
     s.on("connect", () => {
       console.log("🟢 Connected to socket");
-
       s.emit("join_room", { room: "global" });
     });
 
-    // Receive new chat message
     s.on("new_message", (msg: any) => {
       setMessages(prev => [...prev, msg]);
     });
 
-    // Moderation block notice
     s.on("moderation_notice", (data: any) => {
       alert(data.message);
       setToxicity(data.toxicity);
     });
 
-    // Live toxicity meter update
     s.on("toxicity_update", (data: any) => {
       setToxicity(data.toxicity);
     });
 
-    // Typing indicator
     s.on("typing", (data: any) => {
       setTypingUsers(prev => [...new Set([...prev, data.user])]);
 
@@ -61,12 +52,10 @@ export default function Chat() {
       }, 2000);
     });
 
-    // Online users list
     s.on("online_users", (users: string[]) => {
       setOnlineUsers(users);
     });
 
-    // System messages (join / leave)
     s.on("system", (data: any) => {
       setMessages(prev => [
         ...prev,
@@ -74,14 +63,9 @@ export default function Chat() {
       ]);
     });
 
-    // Private room created
     s.on("private_room_created", (data: any) => {
-      console.log("🔐 Private room:", data.room);
-
       setCurrentRoom(data.room);
       setMessages([]);
-
-      // Join that room
       s.emit("join_room", { room: data.room });
     });
 
@@ -99,15 +83,14 @@ export default function Chat() {
     socket.emit("chat_message", {
       room: currentRoom,
       message: input,
-      chat_id: chatId,
-      user_id: userId
+      chat_id: 1
     });
 
     setInput("");
   }
 
   // -------------------------------------------------
-  // ✍️ TYPING EVENT
+  // ✍️ TYPING
   // -------------------------------------------------
   function handleTyping() {
     if (socket) {
@@ -129,7 +112,7 @@ export default function Chat() {
   }
 
   // -------------------------------------------------
-  // 👥 SWITCH BACK TO GLOBAL ROOM
+  // 🌍 SWITCH TO GLOBAL
   // -------------------------------------------------
   function switchToGlobal() {
     if (!socket) return;
@@ -147,20 +130,17 @@ export default function Chat() {
   return (
     <div className="flex h-screen bg-black text-white">
 
-      {/* 🟢 ONLINE USERS + PRIVATE CHAT PANEL */}
+      {/* 🟢 ONLINE USERS + PRIVATE CHAT */}
       <div className="w-72 bg-gray-900 p-4 border-r border-gray-800 flex flex-col">
 
         <h3 className="font-bold mb-4 text-purple-400">Online Users</h3>
 
         <div className="flex-1 overflow-y-auto space-y-2">
           {onlineUsers.map((u, i) => (
-            <div key={i} className="flex justify-between items-center">
-              <span className="text-green-400">● {u}</span>
-            </div>
+            <div key={i} className="text-green-400">● {u}</div>
           ))}
         </div>
 
-        {/* Start Private Chat */}
         <div className="mt-6">
           <h4 className="font-semibold mb-2">Start Private Chat</h4>
 
@@ -190,12 +170,10 @@ export default function Chat() {
       {/* 💬 CHAT AREA */}
       <div className="flex-1 flex flex-col">
 
-        {/* Header */}
-        <div className="p-4 border-b border-gray-800 text-gray-300">
+        <div className="p-4 border-b border-gray-800">
           Current Room: <span className="text-purple-400">{currentRoom}</span>
         </div>
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.map((msg, i) =>
             msg.system ? (
@@ -208,12 +186,9 @@ export default function Chat() {
           )}
         </div>
 
-        {/* Typing indicator */}
         <TypingIndicator users={typingUsers} />
 
-        {/* Input + Toxicity Meter */}
         <div className="p-4 border-t border-gray-800">
-
           <input
             className="w-full p-3 bg-gray-800 rounded"
             placeholder={`Message in ${currentRoom}...`}
@@ -222,7 +197,6 @@ export default function Chat() {
             onKeyDown={handleTyping}
           />
 
-          {/* 🔥 Live Toxicity Bar */}
           <ToxicityMeter value={toxicity} />
 
           <button

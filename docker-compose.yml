@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+
+  # 🔴 Redis
+  redis:
+    image: redis:7
+    container_name: safechat-redis
+    command: ["redis-server", "--bind", "0.0.0.0", "--protected-mode", "no"]
+    ports:
+      - "6379:6379"
+
+
+  # 🗄️ PostgreSQL
+  postgres:
+    image: postgres:15
+    container_name: safechat-postgres
+    environment:
+      POSTGRES_USER: safechat
+      POSTGRES_PASSWORD: safechat
+      POSTGRES_DB: safechat
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+
+  # 🧠 ML Moderation Service
+  ml-service:
+    build: ./ml-service
+    container_name: safechat-ml
+    ports:
+      - "8001:8001"
+    depends_on:
+      - redis
+
+
+  # 💬 Chat Backend (FastAPI + Socket.IO)
+  chat-backend:
+    build: ./chat-backend
+    container_name: safechat-backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - postgres
+      - ml-service
+    environment:
+      DATABASE_URL: postgresql+asyncpg://safechat:safechat@postgres:5432/safechat
+      REDIS_URL: redis://redis:6379
+      ML_URL: http://ml-service:8001/predict
+
+
+  # 🖥️ Frontend (Next.js)
+  frontend:
+    build: ./frontend
+    container_name: safechat-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - chat-backend
+
+
+volumes:
+  postgres_data:

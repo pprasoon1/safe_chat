@@ -56,6 +56,10 @@ async def login(data: dict, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     # Create JWT
-    token = create_access_token({"sub": user.email})
+    token = create_access_token({
+    "sub": email,
+    "user_id": user.id
+})
+
 
     return {"access_token": token, "token_type": "bearer"}

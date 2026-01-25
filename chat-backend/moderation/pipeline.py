@@ -1,8 +1,9 @@
+import os
 import httpx
 from .auto_moderator import auto_moderate
 from .risk import update_user_risk
 
-ML_URL = "http://127.0.0.1:8001/predict"
+ML_URL = os.getenv("ML_URL", "http://localhost:8001/predict")
 
 async def moderate_message(data):
     async with httpx.AsyncClient() as client:

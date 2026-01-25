@@ -1,10 +1,12 @@
 # db.py
-
+import os
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 # use the same user you used with psql (prasoon)
-DATABASE_URL = "postgresql+asyncpg://prasoon:prasoon@localhost:5432/chatdb"
+DATABASE_URL = os.getenv(
+"DATABASE_URL",
+"postgresql+asyncpg://prasoon:prasoon@localhost:5432/chatdb")
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 

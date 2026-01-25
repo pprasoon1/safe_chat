@@ -6,6 +6,8 @@ from db import engine, Base
 from models.user import User
 from models.chats import Chat
 from models.message import Message
+from models.room import Room
+from models.room_member import RoomMember
 
 
 async def init():
