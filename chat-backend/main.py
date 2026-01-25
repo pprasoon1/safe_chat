@@ -21,7 +21,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://safe-chat-frontend.vercel.app",   # change later to your real Vercel domain
+        "https://safechat-azure.vercel.app/",   # change later to your real Vercel domain
         "https://safe-chat-ovd9.onrender.com"
     ],
     allow_credentials=True,
